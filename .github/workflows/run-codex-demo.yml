@@ -139,7 +139,32 @@ jobs:
         run: |
           set -euo pipefail
           wait_private_job() {
-            local label="$1" pattern="$2" payload stage_state status conclusion job_url job_name
+            local label="$1" pattern="$2" payload stage_state status conclusion job_url job_name job_id
+            surface_private_failure() {
+              local failed_job_id="$1" failed_job_url="$2" failed_label="$3" log filtered
+              echo "Collecting redacted private failure diagnostics for ${failed_label}."
+              log="$(gh run view "${PRIVATE_RUN_ID}" --repo "${PRIVATE_REPO}" --job "${failed_job_id}" --log 2>&1 || true)"
+              filtered="$(printf '%s\n' "${log}" | python3 -c 'import re,sys
+          patterns = re.compile(r"(::error::|preflight failed|Credit balance is too low|invalid api key|invalid x-api-key|insufficient_quota|quota|rate[ -]?limit|token[- ]?budget|token limit|tokens exceeded|out of tokens|unauthorized|forbidden|model access|model denied|model_not_found|invalid model)", re.I)
+          lines = [line for line in sys.stdin.read().splitlines() if patterns.search(line)]
+          print("\n".join(lines[-120:]))')"
+              if [ -n "${filtered}" ]; then
+                echo "::group::Private failure diagnostics for ${failed_label}"
+                printf '%s\n' "${filtered}"
+                echo "::endgroup::"
+                {
+                  echo "### ${failed_label} failed"
+                  echo
+                  echo '```text'
+                  printf '%s\n' "${filtered}" | tail -n 80
+                  echo '```'
+                  echo
+                  echo "Private job: ${failed_job_url}"
+                } >> "${GITHUB_STEP_SUMMARY}"
+              else
+                echo "::notice::No filtered private failure diagnostics found for ${failed_label}; inspect ${failed_job_url}"
+              fi
+            }
             echo "Waiting for ${label} in ${PRIVATE_REPO} run ${PRIVATE_RUN_ID}"
             while true; do
               payload="$(gh run view "${PRIVATE_RUN_ID}" --repo "${PRIVATE_REPO}" --json jobs,status,conclusion,url)"
@@ -152,10 +177,10 @@ jobs:
                   match=job
                   break
           if not match:
-              print("|".join(["pending", "", "", ""]))
+              print("|".join(["pending", "", "", "", ""]))
           else:
-              print("|".join([match.get("status") or "", match.get("conclusion") or "", match.get("url") or "", match.get("name") or ""]))' <<<"${payload}")"
-              IFS='|' read -r status conclusion job_url job_name <<<"${stage_state}"
+              print("|".join([match.get("status") or "", match.get("conclusion") or "", match.get("url") or "", match.get("name") or "", str(match.get("databaseId") or "")]))' <<<"${payload}")"
+              IFS='|' read -r status conclusion job_url job_name job_id <<<"${stage_state}"
               if [ -z "${job_name}" ]; then
                 echo "Private job not created yet: ${pattern}"
               else
@@ -163,6 +188,9 @@ jobs:
               fi
               if [ "${status}" = "completed" ]; then
                 if [ "${conclusion}" != "success" ]; then
+                  if [ -n "${job_id}" ]; then
+                    surface_private_failure "${job_id}" "${job_url}" "${label}"
+                  fi
                   echo "::error::Private job ended with ${conclusion} while waiting for ${label}: ${job_url}" >&2
                   exit 1
                 fi

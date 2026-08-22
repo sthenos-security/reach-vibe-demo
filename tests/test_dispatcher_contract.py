@@ -71,6 +71,11 @@ def test_public_workflows_mirror_private_live_stages() -> None:
         assert "output tokens | 25,000-230,000" in text
         assert "60 minute hard cap" in text
         assert "wait_private_job" in text
+        assert "surface_private_failure" in text
+        assert "Collecting redacted private failure diagnostics" in text
+        assert "Credit balance is too low" in text
+        assert "token[- ]?budget" in text
+        assert "Private failure diagnostics" in text
         assert "1. the app the selected agent wrote" in text
         assert 'startswith("2. ")' in text
         assert 'startswith("3. ")' in text
