@@ -59,7 +59,7 @@ def test_public_workflows_mirror_private_live_stages() -> None:
     for path in _workflow_paths():
         text = _text(path)
 
-        assert "timeout-minutes: 65" in text
+        assert "timeout-minutes: 60" in text
         assert "id: dispatch" in text
         assert "private_run_id" in text
         assert "const publicRunId = String(context.runId);" in text
