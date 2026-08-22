@@ -132,6 +132,7 @@ jobs:
             core.info(`Private Codex runner: ${privateRun.html_url}`);
 
       - name: Generate app
+        if: ${{ github.event.inputs.run != 'refresh-pages' }}
         env:
           GH_TOKEN: ${{ secrets.REACH_DEMO_RUNNER_DISPATCH_TOKEN }}
           PRIVATE_RUN_ID: ${{ steps.dispatch.outputs.private_run_id }}
@@ -173,6 +174,7 @@ jobs:
           wait_private_job "Codex generation" "1. the app the selected agent wrote"
 
       - name: Scan before
+        if: ${{ github.event.inputs.run != 'refresh-pages' }}
         env:
           GH_TOKEN: ${{ secrets.REACH_DEMO_RUNNER_DISPATCH_TOKEN }}
           PRIVATE_RUN_ID: ${{ steps.dispatch.outputs.private_run_id }}
@@ -198,18 +200,21 @@ jobs:
           done
 
       - name: Discover reachable issues
+        if: ${{ github.event.inputs.run != 'refresh-pages' }}
         run: |
           set -euo pipefail
           echo "REACHABLE discovery completed in the before scan."
           echo "Findings are published on the Codex status page after verification."
 
       - name: Triage findings
+        if: ${{ github.event.inputs.run != 'refresh-pages' }}
         run: |
           set -euo pipefail
           echo "REACHABLE triage is complete for the before scan."
           echo "The public status page will show reachable findings and selected remediation scope."
 
       - name: Remediate with Codex
+        if: ${{ github.event.inputs.run != 'refresh-pages' }}
         env:
           GH_TOKEN: ${{ secrets.REACH_DEMO_RUNNER_DISPATCH_TOKEN }}
           PRIVATE_RUN_ID: ${{ steps.dispatch.outputs.private_run_id }}
