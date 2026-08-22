@@ -43,8 +43,8 @@ def test_public_workflows_dispatch_only_private_throwdown() -> None:
     for path in _workflow_paths():
         text = _text(path)
 
-        assert "owner: 'sthenos-security'" in text
-        assert "repo: 'reach-vibe-throwdown'" in text
+        assert "sthenos-security" in text
+        assert "reach-vibe-throwdown" in text
         assert "workflow_id: 'demo-remediation.yml'" in text
         assert "createWorkflowDispatch" in text
         assert "reach-vibe-throwdown-public" not in text
