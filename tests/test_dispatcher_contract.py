@@ -65,6 +65,11 @@ def test_public_workflows_mirror_private_live_stages() -> None:
         assert "const publicRunId = String(context.runId);" in text
         assert "dispatch_source_run: publicRunId" in text
         assert "(run.display_title || '').includes(`public ${publicRunId}`)" in text
+        assert "Estimate tokens and time" in text
+        assert "model tokens | 53,000-350,000 total" in text
+        assert "input tokens | 28,000-190,000" in text
+        assert "output tokens | 25,000-160,000" in text
+        assert "60 minute hard cap" in text
         assert "wait_private_job" in text
         assert "1. the app the selected agent wrote" in text
         assert 'startswith("2. ")' in text

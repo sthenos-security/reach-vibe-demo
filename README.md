@@ -40,10 +40,21 @@ Each status page should answer five questions:
 4. What changed in the code?
 5. What did the final scan prove?
 
-The useful story is not that AI always writes secure code. The useful story is
-that REACHABLE finds the reachable issues, drives the agent to remediate them,
-and publishes the before/after proof.
+The point is not that AI always writes secure code. The point is that REACHABLE
+secures generated code by proving which issues are exploitable and reachable by
+an attacker, then driving the agent to remediate the risks that matter before
+they reach build, runtime, or production. Fixing exploitable issues later in the
+SDLC is slower, more painful, and usually pulls humans back into the loop.
+
+Attackers chain sophisticated attacks. REACHABLE starts layered defense at code
+generation, before exploitable paths become part of your deployed production app.
+
+For small agentic development teams, SMBs, and focused vertical software
+companies without a dedicated security team, this saves time and reduces the
+need for late manual security work.
 
 ## Contact
+
+Website: https://sthenosec.com
 
 info@sthenosec.com
