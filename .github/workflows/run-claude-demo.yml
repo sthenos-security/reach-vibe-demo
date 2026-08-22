@@ -22,12 +22,14 @@ concurrency:
 
 jobs:
   dispatch:
-    name: Start private Claude runner
+    name: Claude demo live stages
     runs-on: ubuntu-latest
     environment: demo-dispatch
-    timeout-minutes: 5
+    timeout-minutes: 65
+    env:
+      PRIVATE_REPO: sthenos-security/reach-vibe-throwdown
     steps:
-      - name: Require private dispatch access
+      - name: Setup
         env:
           HAS_DISPATCH_TOKEN: ${{ secrets.REACH_DEMO_RUNNER_DISPATCH_TOKEN != '' }}
         run: |
@@ -36,20 +38,24 @@ jobs:
             echo "::error::Private demo dispatch is not configured." >&2
             exit 1
           fi
+          echo "Claude demo stage mirror is ready."
 
-      - name: Dispatch Claude demo
+      - name: Generate request
+        id: dispatch
         uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.REACH_DEMO_RUNNER_DISPATCH_TOKEN }}
           script: |
+            const owner = 'sthenos-security';
+            const repo = 'reach-vibe-throwdown';
             const requestedRun = '${{ github.event.inputs.run }}';
             const resumeFromRun = '${{ github.event.inputs.resume_from_run }}'.trim();
             const runMap = {
               'refresh-pages': 're-publish only (rebuild the pages from the last run)',
               'full-demo': 'everything (generate, scan, remediate, publish)',
             };
-            const privateRun = runMap[requestedRun];
-            if (!privateRun) {
+            const privateRunLabel = runMap[requestedRun];
+            if (!privateRunLabel) {
               core.setFailed(`unsupported run '${requestedRun}'`);
               return;
             }
@@ -57,14 +63,15 @@ jobs:
               core.setFailed('resume_from_run must be empty or a numeric GitHub Actions run ID');
               return;
             }
+            const before = Date.now();
             await github.rest.actions.createWorkflowDispatch({
-              owner: 'sthenos-security',
-              repo: 'reach-vibe-throwdown',
+              owner,
+              repo,
               workflow_id: 'demo-remediation.yml',
               ref: 'main',
               inputs: {
                 agent: 'claude',
-                run: privateRun,
+                run: privateRunLabel,
                 source: 'generated',
                 scan_mode: 'real',
                 agent_timeout_sec: '480',
@@ -75,4 +82,166 @@ jobs:
                 resume_from_run: resumeFromRun,
               },
             });
-            core.info('Started the private Claude demo runner.');
+            let privateRun = null;
+            for (let attempt = 0; attempt < 30; attempt += 1) {
+              const runs = await github.rest.actions.listWorkflowRuns({
+                owner,
+                repo,
+                workflow_id: 'demo-remediation.yml',
+                per_page: 10,
+              });
+              privateRun = runs.data.workflow_runs.find((run) => {
+                const created = Date.parse(run.created_at);
+                return run.event === 'workflow_dispatch'
+                  && created >= before - 10000
+                  && run.head_branch === 'main';
+              });
+              if (privateRun) break;
+              await new Promise((resolve) => setTimeout(resolve, 2000));
+            }
+            if (!privateRun) {
+              core.setFailed('Private Claude run was dispatched but could not be located.');
+              return;
+            }
+            core.setOutput('private_run_id', String(privateRun.id));
+            core.setOutput('private_run_url', privateRun.html_url);
+            core.info(`Private Claude runner: ${privateRun.html_url}`);
+
+      - name: Generate app
+        env:
+          GH_TOKEN: ${{ secrets.REACH_DEMO_RUNNER_DISPATCH_TOKEN }}
+          PRIVATE_RUN_ID: ${{ steps.dispatch.outputs.private_run_id }}
+        run: |
+          set -euo pipefail
+          wait_private_job() {
+            local label="$1" pattern="$2" payload stage_state status conclusion job_url job_name
+            echo "Waiting for ${label} in ${PRIVATE_REPO} run ${PRIVATE_RUN_ID}"
+            while true; do
+              payload="$(gh run view "${PRIVATE_RUN_ID}" --repo "${PRIVATE_REPO}" --json jobs,status,conclusion,url)"
+              stage_state="$(PATTERN="${pattern}" python3 -c 'import json,os,sys
+          data=json.load(sys.stdin)
+          pattern=os.environ["PATTERN"]
+          match=None
+          for job in data.get("jobs") or []:
+              if pattern in (job.get("name") or ""):
+                  match=job
+                  break
+          if not match:
+              print("|".join(["pending", "", "", ""]))
+          else:
+              print("|".join([match.get("status") or "", match.get("conclusion") or "", match.get("url") or "", match.get("name") or ""]))' <<<"${payload}")"
+              IFS='|' read -r status conclusion job_url job_name <<<"${stage_state}"
+              if [ -z "${job_name}" ]; then
+                echo "Private job not created yet: ${pattern}"
+              else
+                echo "${job_name}: ${status}/${conclusion:-in_progress} ${job_url}"
+              fi
+              if [ "${status}" = "completed" ]; then
+                if [ "${conclusion}" != "success" ]; then
+                  echo "::error::Private job ended with ${conclusion} while waiting for ${label}: ${job_url}" >&2
+                  exit 1
+                fi
+                break
+              fi
+              sleep 20
+            done
+          }
+          wait_private_job "Claude generation" "1. the app the selected agent wrote"
+
+      - name: Scan before
+        env:
+          GH_TOKEN: ${{ secrets.REACH_DEMO_RUNNER_DISPATCH_TOKEN }}
+          PRIVATE_RUN_ID: ${{ steps.dispatch.outputs.private_run_id }}
+        run: |
+          set -euo pipefail
+          echo "Waiting for REACHABLE's before scan to produce findings."
+          while true; do
+            payload="$(gh run view "${PRIVATE_RUN_ID}" --repo "${PRIVATE_REPO}" --json jobs,status,conclusion,url)"
+            scan_state="$(python3 -c 'import json,sys
+          data=json.load(sys.stdin)
+          job=next((j for j in data.get("jobs") or [] if (j.get("name") or "").startswith("2. ")), None)
+          if not job:
+              print("pending||")
+          else:
+              print((job.get("status") or "")+"|"+(job.get("conclusion") or "")+"|"+(job.get("url") or ""))' <<<"${payload}")"
+            IFS='|' read -r status conclusion url <<<"${scan_state}"
+            echo "Before scan: ${status}/${conclusion:-in_progress} ${url}"
+            if [ "${status}" = "completed" ]; then
+              test "${conclusion}" = "success"
+              break
+            fi
+            sleep 20
+          done
+
+      - name: Discover reachable issues
+        run: |
+          set -euo pipefail
+          echo "REACHABLE discovery completed in the before scan."
+          echo "Findings are published on the Claude status page after verification."
+
+      - name: Triage findings
+        run: |
+          set -euo pipefail
+          echo "REACHABLE triage is complete for the before scan."
+          echo "The public status page will show reachable findings and selected remediation scope."
+
+      - name: Remediate with Claude
+        env:
+          GH_TOKEN: ${{ secrets.REACH_DEMO_RUNNER_DISPATCH_TOKEN }}
+          PRIVATE_RUN_ID: ${{ steps.dispatch.outputs.private_run_id }}
+        run: |
+          set -euo pipefail
+          echo "Waiting for Claude remediation."
+          while true; do
+            payload="$(gh run view "${PRIVATE_RUN_ID}" --repo "${PRIVATE_REPO}" --json jobs,status,conclusion,url)"
+            rem_state="$(python3 -c 'import json,sys
+          data=json.load(sys.stdin)
+          job=next((j for j in data.get("jobs") or [] if (j.get("name") or "").startswith("3. ")), None)
+          if not job:
+              print("pending||")
+          else:
+              print((job.get("status") or "")+"|"+(job.get("conclusion") or "")+"|"+(job.get("url") or ""))' <<<"${payload}")"
+            IFS='|' read -r status conclusion url <<<"${rem_state}"
+            echo "Remediation: ${status}/${conclusion:-in_progress} ${url}"
+            if [ "${status}" = "completed" ]; then
+              test "${conclusion}" = "success"
+              break
+            fi
+            sleep 20
+          done
+
+      - name: Verify and publish
+        env:
+          GH_TOKEN: ${{ secrets.REACH_DEMO_RUNNER_DISPATCH_TOKEN }}
+          PRIVATE_RUN_ID: ${{ steps.dispatch.outputs.private_run_id }}
+        run: |
+          set -euo pipefail
+          echo "Waiting for rescan and publish."
+          while true; do
+            payload="$(gh run view "${PRIVATE_RUN_ID}" --repo "${PRIVATE_REPO}" --json jobs,status,conclusion,url)"
+            pub_state="$(python3 -c 'import json,sys
+          data=json.load(sys.stdin)
+          job=next((j for j in data.get("jobs") or [] if (j.get("name") or "").startswith("4. ")), None)
+          if not job:
+              print("pending||")
+          else:
+              print((job.get("status") or "")+"|"+(job.get("conclusion") or "")+"|"+(job.get("url") or ""))' <<<"${payload}")"
+            IFS='|' read -r status conclusion url <<<"${pub_state}"
+            echo "Verify/publish: ${status}/${conclusion:-in_progress} ${url}"
+            if [ "${status}" = "completed" ]; then
+              test "${conclusion}" = "success"
+              break
+            fi
+            sleep 20
+          done
+
+      - name: Publish links
+        run: |
+          set -euo pipefail
+          {
+            echo "## Claude demo result"
+            echo
+            echo "- Public status page: https://sthenos-security.github.io/reach-vibe-throwdown/claude/"
+            echo "- Demo hub: https://sthenos-security.github.io/reach-vibe-throwdown/"
+            echo "- Private runner: ${{ steps.dispatch.outputs.private_run_url }}"
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -28,6 +28,12 @@ def _workflow_paths() -> list[Path]:
     return sorted(WORKFLOW_DIR.glob("*.yml"))
 
 
+def _canonical_workflow(filename: str, agent: str) -> str:
+    display = {"codex": "Codex", "claude": "Claude", "cursor": "Cursor"}[agent]
+    text = _text(WORKFLOW_DIR / filename)
+    return text.replace(display, "Agent").replace(agent, "agent")
+
+
 def test_public_repo_has_one_visible_pipeline_per_agent() -> None:
     workflows = {path.name for path in _workflow_paths()}
 
@@ -37,6 +43,32 @@ def test_public_repo_has_one_visible_pipeline_per_agent() -> None:
         assert f"name: {display_name}" in text
         assert f"agent: '{agent}'" in text
         assert f"group: dispatch-demo-{agent}" in text
+
+
+def test_public_workflows_are_same_code_after_agent_constants() -> None:
+    canonical = {
+        filename: _canonical_workflow(filename, agent)
+        for filename, (_display_name, agent) in EXPECTED_WORKFLOWS.items()
+    }
+
+    assert canonical["run-claude-demo.yml"] == canonical["run-codex-demo.yml"]
+    assert canonical["run-cursor-demo.yml"] == canonical["run-codex-demo.yml"]
+
+
+def test_public_workflows_mirror_private_live_stages() -> None:
+    for path in _workflow_paths():
+        text = _text(path)
+
+        assert "timeout-minutes: 65" in text
+        assert "id: dispatch" in text
+        assert "private_run_id" in text
+        assert "wait_private_job" in text
+        assert "1. the app the selected agent wrote" in text
+        assert 'startswith("2. ")' in text
+        assert 'startswith("3. ")' in text
+        assert 'startswith("4. ")' in text
+        assert "Waiting for rescan and publish." in text
+        assert "Public status page:" in text
 
 
 def test_public_workflows_dispatch_only_private_throwdown() -> None:
