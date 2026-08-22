@@ -62,4 +62,4 @@ need for late manual security work.
 
 Website: https://sthenosec.com
 
-info@sthenosec.com
+Questions: info@sthenosec.com
