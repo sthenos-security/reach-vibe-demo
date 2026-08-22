@@ -1,101 +1,65 @@
 # REACHABLE Vibe Demo
 
-This is the public front door for the REACHABLE local-agent remediation demo.
+AI coding agents can move fast, but the code they generate is often insecure in
+ways that matter in production.
 
-The private `reach-vibe-throwdown` repo is the secure runner. It stores vendor
-API keys, invokes local agent CLIs, runs REACHABLE scans/remediation, manages
-global `.reachable` cache state, builds evidence, and publishes sanitized pages.
+This demo shows REACHABLE closing that loop: an agent generates an application,
+REACHABLE finds the reachable security issues, and then REACHABLE asks the same
+agent to remediate them. The result is rescanned and published with evidence.
 
-This public repo does not run agents, scanners, or remediation. It accepts a
-bounded request and dispatches the private runner.
+## What To Show
 
-## What The Demo Shows
+Start here:
 
-An AI coding agent writes vulnerable code. REACHABLE scans it, hands the same
-local agent a remediation task, rescans the result, and publishes DB-backed
-evidence.
+- Demo hub: https://sthenos-security.github.io/reach-vibe-throwdown/
+- Codex status page: https://sthenos-security.github.io/reach-vibe-throwdown/codex/
+- Claude status page: https://sthenos-security.github.io/reach-vibe-throwdown/claude/
+- Cursor status page: https://sthenos-security.github.io/reach-vibe-throwdown/cursor/
 
-Published pages:
+Each status page shows the same story:
 
-- hub: https://sthenos-security.github.io/reach-vibe-throwdown/
-- Codex: https://sthenos-security.github.io/reach-vibe-throwdown/codex/
-- Claude: https://sthenos-security.github.io/reach-vibe-throwdown/claude/
-- Cursor: https://sthenos-security.github.io/reach-vibe-throwdown/cursor/
+1. What the agent generated.
+2. What REACHABLE found.
+3. What REACHABLE asked the agent to fix.
+4. What changed.
+5. What the final scan proved.
 
-Each private lane publishes the same evidence shape: status, before scan,
-fixed/remediation status, summary JSON, generation prompt, code before, code
-after, side-by-side diff, evidence index, and raw patch.
+The pages link to the before scan, fix result, before/after code, diff, and
+evidence files.
 
-## Run Shape
+## How The Demo Runs
 
-The public GitHub Actions workflow is:
+This public repo is only the demo button. The private
+`sthenos-security/reach-vibe-throwdown` repo runs the agents, scanners,
+remediation, cache, and evidence publishing.
 
-`.github/workflows/request-agent-demo.yml`
+Use GitHub Actions:
 
-Inputs:
+1. Open **Actions**.
+2. Choose **Request REACHABLE vibe demo**.
+3. Pick `codex`, `claude`, or `cursor`.
+4. Pick `full-demo`.
+5. Run the workflow.
 
-| Input | Choices |
-|---|---|
-| `agent` | `codex`, `claude`, `cursor` |
-| `run` | `refresh-pages`, `full-demo` |
-| `resume_from_run` | optional numeric private run ID for `refresh-pages` |
+For a quick page rebuild, pick `refresh-pages` and provide the private runner
+run ID in `resume_from_run`.
 
-Use `full-demo` for the live VC path. Use `refresh-pages` with
-`resume_from_run` when you only want to rebuild the public evidence pages from a
-known successful private run.
+## Why It Matters
 
-The private runner owns the actual stage architecture:
-
-`plan -> generate -> scan-before -> remediate -> scan-after -> publish`
-
-Those private stages use one shared code path. The only intentional difference
-from the working GitHub remediation reference is that the private runner invokes
-local agent CLIs instead of GitHub agent/Copilot integration. Copilot is not
-supported.
-
-## Cache
-
-The private runner stores global REACHABLE state in GitHub cache:
-
-- `~/.reachable/venv`
-- `~/.reachable/tools`
-- `~/.reachable/cache`
-- `~/.reachable/semgrep`
-- `~/.reachable/release-attestations`
-- `~/.reachable/scans`
-- `~/.reachable/transient/vibe`
-
-The scan DB and remediation DB are therefore part of the cached REACHABLE state,
-not ephemeral per-step scratch.
-
-## Setup
-
-Create one environment secret in this public repo:
-
-`REACH_DEMO_RUNNER_DISPATCH_TOKEN`
-
-Store it under:
-
-`Settings -> Environments -> demo-dispatch -> Environment secrets`
-
-The token should be fine-grained and scoped to dispatch workflows in
-`sthenos-security/reach-vibe-throwdown`. The private runner keeps
-`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, and `CURSOR_API_KEY`.
+The important claim is not that every generated app is perfectly fixed. The
+important claim is that REACHABLE identifies the issues that are actually
+reachable, drives the developer's own AI agent to fix them, and publishes the
+before/after evidence instead of asking a human to trust a black box.
 
 ## Boundary
 
-This public repo:
+The public repo does not store vendor API keys and does not run agents,
+scanners, or remediation. It only uses `REACH_DEMO_RUNNER_DISPATCH_TOKEN` to
+dispatch the private runner.
 
-- uses only `REACH_DEMO_RUNNER_DISPATCH_TOKEN`;
-- does not store vendor API keys;
-- does not run agents;
-- does not run scanners;
-- does not run remediation;
-- has no `reach-ci-github` runtime dependency;
-- does not use Copilot;
-- creates no remediation PRs;
-- never uses `--context ci`;
-- never uses `--mode branch`;
-- never uses `CODEX_ACCESS_TOKEN`.
+The private runner owns the AI credentials, REACHABLE cache, scan databases,
+remediation databases, and published evidence.
 
-See [docs/design/LOCAL-AGENT-RUNNER-IMPLEMENTATION.md](docs/design/LOCAL-AGENT-RUNNER-IMPLEMENTATION.md).
+## Contact
+
+Questions: info@sthenosec.com

@@ -49,6 +49,10 @@ def test_workflow_has_only_bounded_user_inputs() -> None:
     assert "resume_from_run:" in text
     assert "/^[0-9]+$/.test(resumeFromRun)" in text
     assert "resume_from_run: resumeFromRun" in text
+    assert "agent_timeout_sec: '480'" in text
+    assert "generate_timeout_sec: '900'" in text
+    assert "absolute_max_sec: '1800'" in text
+    assert "pipeline_timeout_sec: '3600'" in text
     assert "'refresh-pages': 're-publish only (rebuild the pages from the last run)'" in text
     assert "'full-demo': 'everything (generate, scan, remediate, publish)'" in text
     assert "const allowedAgents = ['codex', 'claude', 'cursor'];" in text
