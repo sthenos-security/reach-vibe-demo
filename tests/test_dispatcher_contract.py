@@ -66,9 +66,9 @@ def test_public_workflows_mirror_private_live_stages() -> None:
         assert "dispatch_source_run: publicRunId" in text
         assert "(run.display_title || '').includes(`public ${publicRunId}`)" in text
         assert "Estimate tokens and time" in text
-        assert "model tokens | 53,000-350,000 total" in text
-        assert "input tokens | 28,000-190,000" in text
-        assert "output tokens | 25,000-160,000" in text
+        assert "model tokens | 53,000-600,000 total" in text
+        assert "input tokens | 28,000-370,000" in text
+        assert "output tokens | 25,000-230,000" in text
         assert "60 minute hard cap" in text
         assert "wait_private_job" in text
         assert "1. the app the selected agent wrote" in text
@@ -114,7 +114,7 @@ def test_workflows_have_only_bounded_user_inputs() -> None:
         assert "scan_mode: 'real'" in text
         assert "agent_timeout_sec: '480'" in text
         assert "generate_timeout_sec: '1800'" in text
-        assert "absolute_max_sec: '1800'" in text
+        assert "absolute_max_sec: '3000'" in text
         assert "pipeline_timeout_sec: '3600'" in text
         assert "'refresh-pages': 're-publish only (rebuild the pages from the last run)'" in text
         assert "'full-demo': 'everything (generate, scan, remediate, publish)'" in text
