@@ -107,7 +107,7 @@ jobs:
             core.setOutput('private_run_url', privateRun.html_url);
             core.info(`Private Codex runner: ${privateRun.html_url}`);
 
-      - name: Scan generated code
+      - name: Generate app
         env:
           GH_TOKEN: ${{ secrets.REACH_DEMO_RUNNER_DISPATCH_TOKEN }}
           PRIVATE_RUN_ID: ${{ steps.dispatch.outputs.private_run_id }}
@@ -126,7 +126,10 @@ jobs:
               if pattern in (job.get("name") or ""):
                   match=job
                   break
-          print("|".join([data.get("status") or "", data.get("conclusion") or "", (match or {}).get("url") or "", (match or {}).get("name") or ""]))' <<<"${payload}")"
+          if not match:
+              print("|".join(["pending", "", "", ""]))
+          else:
+              print("|".join([match.get("status") or "", match.get("conclusion") or "", match.get("url") or "", match.get("name") or ""]))' <<<"${payload}")"
               IFS='|' read -r status conclusion job_url job_name <<<"${stage_state}"
               if [ -z "${job_name}" ]; then
                 echo "Private job not created yet: ${pattern}"
@@ -135,7 +138,7 @@ jobs:
               fi
               if [ "${status}" = "completed" ]; then
                 if [ "${conclusion}" != "success" ]; then
-                  echo "::error::Private run ended with ${conclusion} while waiting for ${label}: ${{ steps.dispatch.outputs.private_run_url }}" >&2
+                  echo "::error::Private job ended with ${conclusion} while waiting for ${label}: ${job_url}" >&2
                   exit 1
                 fi
                 break
@@ -145,7 +148,7 @@ jobs:
           }
           wait_private_job "Codex generation" "1. the app the selected agent wrote"
 
-      - name: Discover reachable issues
+      - name: Scan before
         env:
           GH_TOKEN: ${{ secrets.REACH_DEMO_RUNNER_DISPATCH_TOKEN }}
           PRIVATE_RUN_ID: ${{ steps.dispatch.outputs.private_run_id }}
@@ -169,6 +172,12 @@ jobs:
             fi
             sleep 20
           done
+
+      - name: Discover reachable issues
+        run: |
+          set -euo pipefail
+          echo "REACHABLE discovery completed in the before scan."
+          echo "Findings are published on the Codex status page after verification."
 
       - name: Triage findings
         run: |
