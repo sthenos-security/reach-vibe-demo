@@ -62,6 +62,9 @@ def test_public_workflows_mirror_private_live_stages() -> None:
         assert "timeout-minutes: 65" in text
         assert "id: dispatch" in text
         assert "private_run_id" in text
+        assert "const publicRunId = String(context.runId);" in text
+        assert "dispatch_source_run: publicRunId" in text
+        assert "(run.display_title || '').includes(`public ${publicRunId}`)" in text
         assert "wait_private_job" in text
         assert "1. the app the selected agent wrote" in text
         assert 'startswith("2. ")' in text

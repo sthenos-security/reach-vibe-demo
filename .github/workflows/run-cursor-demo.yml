@@ -50,6 +50,7 @@ jobs:
             const repo = 'reach-vibe-throwdown';
             const requestedRun = '${{ github.event.inputs.run }}';
             const resumeFromRun = '${{ github.event.inputs.resume_from_run }}'.trim();
+            const publicRunId = String(context.runId);
             const runMap = {
               'refresh-pages': 're-publish only (rebuild the pages from the last run)',
               'full-demo': 'everything (generate, scan, remediate, publish)',
@@ -80,6 +81,7 @@ jobs:
                 pipeline_timeout_sec: '3600',
                 deep_remediation: 'off',
                 resume_from_run: resumeFromRun,
+                dispatch_source_run: publicRunId,
               },
             });
             let privateRun = null;
@@ -94,7 +96,8 @@ jobs:
                 const created = Date.parse(run.created_at);
                 return run.event === 'workflow_dispatch'
                   && created >= before - 10000
-                  && run.head_branch === 'main';
+                  && run.head_branch === 'main'
+                  && (run.display_title || '').includes(`public ${publicRunId}`);
               });
               if (privateRun) break;
               await new Promise((resolve) => setTimeout(resolve, 2000));
