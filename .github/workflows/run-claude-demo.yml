@@ -145,7 +145,7 @@ jobs:
               echo "Collecting redacted private failure diagnostics for ${failed_label}."
               log="$(gh run view "${PRIVATE_RUN_ID}" --repo "${PRIVATE_REPO}" --job "${failed_job_id}" --log 2>&1 || true)"
               filtered="$(printf '%s\n' "${log}" | python3 -c 'import re,sys
-          patterns = re.compile(r"(::error::|preflight failed|Credit balance is too low|invalid api key|invalid x-api-key|insufficient_quota|quota|rate[ -]?limit|token[- ]?budget|token limit|tokens exceeded|out of tokens|unauthorized|forbidden|model access|model denied|model_not_found|invalid model)", re.I)
+          patterns = re.compile(r"(::error::|preflight failed|Credit balance is too low|invalid api key|invalid x-api-key|insufficient_quota|quota|rate[ -]?limit|token[- ]?budget|token limit|tokens exceeded|out of tokens|unauthorized|forbidden|model access|model denied|model_not_found|invalid model|safety measures|Cyber Verification Program|real-time cyber safeguards|cybersecurity topic|cyber safeguards)", re.I)
           lines = [line for line in sys.stdin.read().splitlines() if patterns.search(line)]
           print("\n".join(lines[-120:]))')"
               if [ -n "${filtered}" ]; then

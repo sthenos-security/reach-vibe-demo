@@ -75,6 +75,8 @@ def test_public_workflows_mirror_private_live_stages() -> None:
         assert "Collecting redacted private failure diagnostics" in text
         assert "Credit balance is too low" in text
         assert "token[- ]?budget" in text
+        assert "safety measures" in text
+        assert "Cyber Verification Program" in text
         assert "Private failure diagnostics" in text
         assert "1. the app the selected agent wrote" in text
         assert 'startswith("2. ")' in text
