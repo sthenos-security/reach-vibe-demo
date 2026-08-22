@@ -32,6 +32,11 @@ Sthenos has been approved as a cybersecurity user. If a vendor still blocks an
 agent, the demo surfaces that provider reason separately from REACHABLE scan or
 remediation failures.
 
+Generated code can also vary between runs. Prompt framing, the selected agent,
+and the vendor's backend model routing all affect the exact application the
+agent writes, so the demo records the prompt, model, scan, and remediation
+evidence for each run.
+
 Use `refresh-pages` only when you want to rebuild the public pages from a prior
 run.
 
