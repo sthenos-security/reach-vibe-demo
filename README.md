@@ -27,10 +27,9 @@ Open **Actions**, choose one pipeline, then click **Run workflow**:
 Use `full-demo` for the live story. Each run writes a generated app, scans it,
 remediates it, verifies the result, and updates the status page.
 
-Some LLM vendors restrict automated code generation for security-themed prompts,
-even when the work is authorized and defensive. Sthenos has requested trusted
-security access from Anthropic and OpenAI. If an agent is blocked by a vendor
-policy, the demo surfaces that provider reason separately from REACHABLE scan or
+Some LLM vendors restrict automated code generation for security-themed prompts.
+Sthenos has been approved as a cybersecurity user. If a vendor still blocks an
+agent, the demo surfaces that provider reason separately from REACHABLE scan or
 remediation failures.
 
 Use `refresh-pages` only when you want to rebuild the public pages from a prior
