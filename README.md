@@ -27,6 +27,10 @@ Each status page shows the same story:
 The pages link to the before scan, fix result, before/after code, diff, and
 evidence files.
 
+## Demo Flow
+
+`generate -> scan -> discover -> triage -> remediate -> rescan -> repeat until the reachable issues are handled`
+
 ## How The Demo Runs
 
 This public repo is only the demo button. The private
