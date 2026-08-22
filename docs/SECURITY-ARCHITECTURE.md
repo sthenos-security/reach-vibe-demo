@@ -9,9 +9,10 @@ It owns agent auth, local CLI invocation patterns, REACHABLE install, global
 cache handling, scan DBs, remediation DBs, evidence building, and publish
 contracts.
 
-This public repository is only a bounded front door. It must not contain vendor
-API keys, local agent runner code, scanner logic, remediation logic, scan DBs, or
+This public repository is only a bounded front door. It must not contain vendor API
+keys, local agent runner code, scanner logic, remediation logic, scan DBs, or
 remediation DBs.
+It does not run agents, scanners, or remediation.
 
 ## Secrets
 
@@ -27,10 +28,16 @@ Vendor secrets stay in private `reach-vibe-throwdown`:
 
 ## Workflow Rules
 
-The public workflow may accept only:
+The public workflows are fixed per agent:
 
-- `agent`: `codex`, `claude`, or `cursor`;
-- `run`: `refresh-pages` or `full-demo`.
+- `Run Codex Demo` dispatches `agent=codex`;
+- `Run Claude Demo` dispatches `agent=claude`;
+- `Run Cursor Demo` dispatches `agent=cursor`.
+
+Each workflow may accept only:
+
+- `run`: `refresh-pages` or `full-demo`;
+- `resume_from_run`: empty, or a numeric private run ID for page refresh.
 
 It must not accept shell commands, prompts, arbitrary workflow names, refs,
 URLs, file paths, artifact names, scanner flags, or model settings.

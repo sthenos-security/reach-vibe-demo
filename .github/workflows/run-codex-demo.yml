@@ -1,18 +1,13 @@
-name: Request REACHABLE vibe demo
+name: Run Codex Demo
 
 on:
   workflow_dispatch:
     inputs:
-      agent:
-        description: "Agent lane to request from the private runner"
-        type: choice
-        options: [codex, claude, cursor]
-        default: codex
       run:
         description: "Private runner action"
         type: choice
         options: [refresh-pages, full-demo]
-        default: refresh-pages
+        default: full-demo
       resume_from_run:
         description: "Optional private run ID for refresh-pages"
         type: string
@@ -22,49 +17,37 @@ permissions:
   contents: read
 
 concurrency:
-  group: dispatch-demo
+  group: dispatch-demo-codex
   cancel-in-progress: false
 
 jobs:
   dispatch:
-    name: Dispatch private demo runner
+    name: Start private Codex runner
     runs-on: ubuntu-latest
     environment: demo-dispatch
     timeout-minutes: 5
     steps:
-      - name: Require private dispatch token
+      - name: Require private dispatch access
         env:
           HAS_DISPATCH_TOKEN: ${{ secrets.REACH_DEMO_RUNNER_DISPATCH_TOKEN != '' }}
         run: |
           set -euo pipefail
           if [ "${HAS_DISPATCH_TOKEN}" != "true" ]; then
-            echo "::error::REACH_DEMO_RUNNER_DISPATCH_TOKEN is not configured in the demo-dispatch environment." >&2
+            echo "::error::Private demo dispatch is not configured." >&2
             exit 1
           fi
 
-      - name: Dispatch bounded private workflow request
+      - name: Dispatch Codex demo
         uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.REACH_DEMO_RUNNER_DISPATCH_TOKEN }}
           script: |
-            const owner = 'sthenos-security';
-            const repo = 'reach-vibe-throwdown';
-            const workflow_id = 'demo-remediation.yml';
-            const ref = 'main';
-
-            const agent = '${{ github.event.inputs.agent }}';
             const requestedRun = '${{ github.event.inputs.run }}';
             const resumeFromRun = '${{ github.event.inputs.resume_from_run }}'.trim();
-            const allowedAgents = ['codex', 'claude', 'cursor'];
             const runMap = {
               'refresh-pages': 're-publish only (rebuild the pages from the last run)',
               'full-demo': 'everything (generate, scan, remediate, publish)',
             };
-
-            if (!allowedAgents.includes(agent)) {
-              core.setFailed(`unsupported agent '${agent}'`);
-              return;
-            }
             const privateRun = runMap[requestedRun];
             if (!privateRun) {
               core.setFailed(`unsupported run '${requestedRun}'`);
@@ -74,23 +57,22 @@ jobs:
               core.setFailed('resume_from_run must be empty or a numeric GitHub Actions run ID');
               return;
             }
-
             await github.rest.actions.createWorkflowDispatch({
-              owner,
-              repo,
-              workflow_id,
-              ref,
+              owner: 'sthenos-security',
+              repo: 'reach-vibe-throwdown',
+              workflow_id: 'demo-remediation.yml',
+              ref: 'main',
               inputs: {
-                agent,
+                agent: 'codex',
                 run: privateRun,
                 source: 'generated',
                 scan_mode: 'real',
                 agent_timeout_sec: '480',
-                generate_timeout_sec: '900',
+                generate_timeout_sec: '1800',
                 absolute_max_sec: '1800',
                 pipeline_timeout_sec: '3600',
                 deep_remediation: 'off',
                 resume_from_run: resumeFromRun,
               },
             });
-            core.info(`dispatched ${workflow_id} for ${agent}`);
+            core.info('Started the private Codex demo runner.');
