@@ -46,6 +46,9 @@ def test_workflow_has_only_bounded_user_inputs() -> None:
 
     assert "options: [codex, claude, cursor]" in text
     assert "options: [refresh-pages, full-demo]" in text
+    assert "resume_from_run:" in text
+    assert "/^[0-9]+$/.test(resumeFromRun)" in text
+    assert "resume_from_run: resumeFromRun" in text
     assert "'refresh-pages': 're-publish only (rebuild the pages from the last run)'" in text
     assert "'full-demo': 'everything (generate, scan, remediate, publish)'" in text
     assert "const allowedAgents = ['codex', 'claude', 'cursor'];" in text

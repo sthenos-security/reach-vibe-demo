@@ -38,6 +38,11 @@ Inputs:
 |---|---|
 | `agent` | `codex`, `claude`, `cursor` |
 | `run` | `refresh-pages`, `full-demo` |
+| `resume_from_run` | optional numeric private run ID for `refresh-pages` |
+
+Use `full-demo` for the live VC path. Use `refresh-pages` with
+`resume_from_run` when you only want to rebuild the public evidence pages from a
+known successful private run.
 
 The private runner owns the actual stage architecture:
 
