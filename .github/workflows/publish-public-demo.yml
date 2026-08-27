@@ -1,0 +1,89 @@
+name: Publish Public Demo
+
+# Copies the four published status pages -- the demo hub and one per agent --
+# onto this repository's own GitHub Pages site.
+#
+# The runner that produces those pages is private on purpose: it holds the
+# vendor keys and the application seed. Its Pages site is public, but it is
+# served out of a repository nobody outside can read, and every link it carries
+# into its own workflow runs is a 404 for a visitor. Partners and investors
+# should land on a page served from a repository that is public end to end, so
+# this pipeline re-serves those four pages here and points the deeper evidence
+# links back at the source site, which stays the system of record.
+#
+# It authenticates to nothing. The pages are fetched over plain HTTPS exactly as
+# a visitor fetches them -- no dispatch token, no access to the private
+# repository, nothing that could reach the seed.
+#
+# Run it by hand from the Actions tab whenever the demo needs republishing, and
+# it also runs on its own after each of the three agent pipelines completes.
+
+on:
+  workflow_dispatch:
+    inputs:
+      source:
+        description: "Status-page site to copy from"
+        type: string
+        default: "https://sthenos-security.github.io/reach-vibe-throwdown"
+  workflow_run:
+    workflows: ["Run Codex Demo", "Run Claude Demo", "Run Cursor Demo"]
+    types: [completed]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never two deployments at once, and never cancel one: a cancelled Pages deploy
+# can leave the site mid-replacement, which on this site means a partner opening
+# a missing page.
+concurrency:
+  group: publish-public-demo
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Copy the four status pages
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: Check out the copier
+        uses: actions/checkout@v5
+
+      - name: Copy the status pages
+        env:
+          SOURCE: ${{ inputs.source || 'https://sthenos-security.github.io/reach-vibe-throwdown' }}
+        run: |
+          set -euo pipefail
+          python3 .github/scripts/mirror_status_pages.py \
+            --source "${SOURCE}" --output site
+          # Four pages, always. A copy that silently published three would look
+          # like an agent that had never run.
+          test "$(find site -name index.html | wc -l | tr -d ' ')" = "4"
+          find site -type f -printf '%p %s bytes\n'
+
+      - name: Upload the copied site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: Deploy to this repository's Pages
+        id: deploy
+        uses: actions/deploy-pages@v4
+
+      - name: Say where it went
+        env:
+          SOURCE: ${{ inputs.source || 'https://sthenos-security.github.io/reach-vibe-throwdown' }}
+        run: |
+          set -euo pipefail
+          {
+            echo "## Public demo published"
+            echo
+            echo "- Public site: ${{ steps.deploy.outputs.page_url }}"
+            echo "- Copied from: ${SOURCE}"
+            echo
+            echo "Deeper evidence — before/after scans, code viewers, diffs — is served from the source site."
+          } >> "$GITHUB_STEP_SUMMARY"
