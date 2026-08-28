@@ -1,65 +1,68 @@
 # REACHABLE Vibe Demo
 
-**Three AI coding agents. One identical brief. 20, 8 and 5 security findings.**
+**The same brief, given to three AI coding agents, produces three different
+applications with three different sets of security flaws.**
 
-Same specification, same day, same scanner. Codex, Claude Code and Cursor each
-wrote the application, and each wrote a different number of vulnerabilities into
-it. REACHABLE found them, handed them back to the agent that wrote them, and
-verified the fixes.
+Codex, Claude Code and Cursor each received an identical specification. Each
+wrote a working application. Each wrote a different number of vulnerabilities
+into it. REACHABLE found them, handed them back to the agent that wrote them,
+and rescanned to prove what was actually fixed.
 
-| Agent | Findings put in scope | Evidence |
+**[See what each agent produced →](https://sthenos-security.github.io/reach-vibe-demo/)**
+
+| | |
+| --- | --- |
+| [Codex](https://sthenos-security.github.io/reach-vibe-demo/codex/) | [Claude Code](https://sthenos-security.github.io/reach-vibe-demo/claude/) |
+| [Cursor](https://sthenos-security.github.io/reach-vibe-demo/cursor/) | |
+
+The hub carries the live finding count per agent. Every page links the generated
+code before remediation, the exact prompt, the fixed code, and a side-by-side
+diff. Nothing is summarised that you cannot open and check.
+
+## Deterministic Code vs. Vibe Code
+
+| Security dimension | Traditional secure coding | AI vibe coding |
 | --- | --- | --- |
-| Codex | **20** | [status](https://sthenos-security.github.io/reach-vibe-demo/codex/) |
-| Claude Code | **8** | [status](https://sthenos-security.github.io/reach-vibe-demo/claude/) |
-| Cursor | **5** | [status](https://sthenos-security.github.io/reach-vibe-demo/cursor/) |
+| **Code replication** | Identical every time. A security audit stays valid across deployments. | Changes every run. A new generation needs a new review. |
+| **Vulnerability tracing** | Flaws are static and caught by standard SAST. | Flaws drift. The model may introduce or silently patch them between runs. |
+| **Risk management** | Predictable. Patches apply to specific lines. | Unpredictable. Regenerating a feature to fix one bug can introduce three more. |
 
-**[Open the demo hub →](https://sthenos-security.github.io/reach-vibe-demo/)**
+Traditional software pins its dependencies so builds are reproducible and their
+security posture is knowable. Vibe coding replaces that with a natural-language
+layer that pins nothing. **You cannot guarantee the security posture of one
+generation from the last.**
 
-Every page links the generated code before remediation, the exact prompt, the
-fixed code, and a side-by-side diff. Nothing is summarised that you cannot open.
+Three ways that bites:
 
-## Why This Matters
+- **Different agents, different flaws.** The same prompt — *"write a Node.js
+  login API"* — gets modern hashing from one model and a deprecated module or an
+  injection flaw from another.
+- **Hidden drift on retries.** Same agent, same day, click regenerate: a script
+  that was clean the first time can come back with XSS or an IDOR.
+- **No pinned dependency to fall back on.** There is no version number that makes
+  the next generation behave like the last one.
 
-Agent-generated code ships vulnerabilities, and that is now measured rather than
-argued. [SusVibes](https://leililab.github.io/susvibes-leaderboard/#blog), a
-benchmark from Lei Li Lab at Carnegie Mellon, puts frontier models and agent
-frameworks against 186 real-world, repository-level tasks and scores whether
-what they produce is secure as well as working.
+This is measured, not asserted.
+[SusVibes](https://leililab.github.io/susvibes-leaderboard/#blog), a benchmark
+from Lei Li Lab at Carnegie Mellon, puts frontier models and agent frameworks
+against 186 real-world, repository-level tasks and scores whether the code they
+produce is secure as well as functional.
 
-The spread above is the operational consequence. **Which agent writes your code
-determines how much risk you ship**, and you cannot know that in advance from a
-model's reputation or a benchmark average.
+## What REACHABLE Does About It
 
-REACHABLE closes that gap before production: it proves which issues are actually
-reachable by an attacker, drives the agent that wrote the code to fix them, and
-rescans to confirm. Finding the same issues after deployment costs more and pulls
-people back in.
+It scans what the agent actually wrote, on the run that wrote it. It proves which
+issues are genuinely reachable by an attacker rather than dumping a findings
+list, drives the agent that produced the code to fix them, and rescans to confirm.
+That happens before the code reaches production, where the same issues cost more
+and pull people back into the loop.
 
-## Read This Honestly
+**These demo runs are not reproducible, and we publish them anyway.** Run a lane
+twice and the agent writes a different application, so the findings change with
+it. Treat every number on these pages as one sample. A vendor showing you stable
+figures for generated code is showing you a best-of.
 
-**These runs are not reproducible, and we publish them anyway.** Generation is
-non-deterministic. Run the same lane twice and the agent writes a different
-application, so the findings change with it. Treat 20 / 8 / 5 as one sample, not
-a score — the next run will move it, and a vendor showing you stable numbers for
-generated code is showing you a best-of.
-
-That instability is the argument. A benchmark average cannot tell you what is in
-*your* repository this week. Only scanning what the agent actually wrote, every
-time it writes it, can.
-
-## Run It Yourself
-
-Open **Actions**, pick a pipeline, click **Run workflow**:
-
-- **Run Codex Demo** · **Run Claude Demo** · **Run Cursor Demo**
-
-Use `full-demo` for the complete story: generate, scan, remediate, rescan,
-publish. Use `refresh-pages` to rebuild these pages from a previous run.
-
-Some LLM vendors restrict automated code generation for security-themed prompts.
-Sthenos is approved as a cybersecurity user; where a vendor still blocks an
-agent, the demo reports that separately from a REACHABLE scan or remediation
-failure, so a vendor refusal is never presented as a product result.
+That instability is the whole argument. A benchmark average cannot tell you what
+is in *your* repository this week. Only scanning what your agent just wrote can.
 
 ## Contact
 
