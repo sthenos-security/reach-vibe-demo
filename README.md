@@ -11,10 +11,20 @@ asks the same agent to fix them, scans again, and publishes the evidence.
 
 ## Start Here
 
-- Demo hub: https://sthenos-security.github.io/reach-vibe-throwdown/
-- Codex status: https://sthenos-security.github.io/reach-vibe-throwdown/codex/
-- Claude status: https://sthenos-security.github.io/reach-vibe-throwdown/claude/
-- Cursor status: https://sthenos-security.github.io/reach-vibe-throwdown/cursor/
+- Demo hub: https://sthenos-security.github.io/reach-vibe-demo/
+- Codex status: https://sthenos-security.github.io/reach-vibe-demo/codex/
+- Claude status: https://sthenos-security.github.io/reach-vibe-demo/claude/
+- Cursor status: https://sthenos-security.github.io/reach-vibe-demo/cursor/
+
+These pages are served from this repository, which is public end to end, so
+every link on them resolves for a reader who is not signed in.
+
+They are copies. The pipelines that produce them run in a private repository --
+private because it holds the vendor keys and the generated application seed --
+and the deeper evidence each page links to (before/after code viewers, diffs,
+generation prompts) is served from that repository's own public Pages site.
+Refresh these copies with the **Publish Public Demo** workflow in Actions; it
+authenticates to nothing and fetches those pages exactly as a visitor does.
 
 ## Run A Demo
 
