@@ -1,77 +1,65 @@
 # REACHABLE Vibe Demo
 
-AI coding agents are fast. They also generate security issues.
+**Three AI coding agents. One identical brief. 20, 8 and 5 security findings.**
 
-This demo shows the loop REACHABLE closes:
+Same specification, same day, same scanner. Codex, Claude Code and Cursor each
+wrote the application, and each wrote a different number of vulnerabilities into
+it. REACHABLE found them, handed them back to the agent that wrote them, and
+verified the fixes.
 
-`generate -> scan -> discover -> triage -> remediate -> rescan -> repeat`
+| Agent | Findings put in scope | Evidence |
+| --- | --- | --- |
+| Codex | **20** | [status](https://sthenos-security.github.io/reach-vibe-demo/codex/) |
+| Claude Code | **8** | [status](https://sthenos-security.github.io/reach-vibe-demo/claude/) |
+| Cursor | **5** | [status](https://sthenos-security.github.io/reach-vibe-demo/cursor/) |
 
-An agent writes an application. REACHABLE finds the reachable issues that matter,
-asks the same agent to fix them, scans again, and publishes the evidence.
+**[Open the demo hub →](https://sthenos-security.github.io/reach-vibe-demo/)**
 
-## Start Here
+Every page links the generated code before remediation, the exact prompt, the
+fixed code, and a side-by-side diff. Nothing is summarised that you cannot open.
 
-- Demo hub: https://sthenos-security.github.io/reach-vibe-demo/
-- Codex status: https://sthenos-security.github.io/reach-vibe-demo/codex/
-- Claude status: https://sthenos-security.github.io/reach-vibe-demo/claude/
-- Cursor status: https://sthenos-security.github.io/reach-vibe-demo/cursor/
+## Why This Matters
 
-These pages are served from this repository, which is public end to end, so
-every link on them resolves for a reader who is not signed in.
+Agent-generated code ships vulnerabilities, and that is now measured rather than
+argued. [SusVibes](https://leililab.github.io/susvibes-leaderboard/#blog), a
+benchmark from Lei Li Lab at Carnegie Mellon, puts frontier models and agent
+frameworks against 186 real-world, repository-level tasks and scores whether
+what they produce is secure as well as working.
 
-They are copies. The pipelines that produce them run in a private repository --
-private because it holds the vendor keys and the generated application seed --
-and the deeper evidence each page links to (before/after code viewers, diffs,
-generation prompts) is served from that repository's own public Pages site.
-Refresh these copies with the **Publish Public Demo** workflow in Actions; it
-authenticates to nothing and fetches those pages exactly as a visitor does.
+The spread above is the operational consequence. **Which agent writes your code
+determines how much risk you ship**, and you cannot know that in advance from a
+model's reputation or a benchmark average.
 
-## Run A Demo
+REACHABLE closes that gap before production: it proves which issues are actually
+reachable by an attacker, drives the agent that wrote the code to fix them, and
+rescans to confirm. Finding the same issues after deployment costs more and pulls
+people back in.
 
-Open **Actions**, choose one pipeline, then click **Run workflow**:
+## Read This Honestly
 
-- **Run Codex Demo**
-- **Run Claude Demo**
-- **Run Cursor Demo**
+**These runs are not reproducible, and we publish them anyway.** Generation is
+non-deterministic. Run the same lane twice and the agent writes a different
+application, so the findings change with it. Treat 20 / 8 / 5 as one sample, not
+a score — the next run will move it, and a vendor showing you stable numbers for
+generated code is showing you a best-of.
 
-Use `full-demo` for the live story. Each run writes a generated app, scans it,
-remediates it, verifies the result, and updates the status page.
+That instability is the argument. A benchmark average cannot tell you what is in
+*your* repository this week. Only scanning what the agent actually wrote, every
+time it writes it, can.
+
+## Run It Yourself
+
+Open **Actions**, pick a pipeline, click **Run workflow**:
+
+- **Run Codex Demo** · **Run Claude Demo** · **Run Cursor Demo**
+
+Use `full-demo` for the complete story: generate, scan, remediate, rescan,
+publish. Use `refresh-pages` to rebuild these pages from a previous run.
 
 Some LLM vendors restrict automated code generation for security-themed prompts.
-Sthenos has been approved as a cybersecurity user. If a vendor still blocks an
-agent, the demo surfaces that provider reason separately from REACHABLE scan or
-remediation failures.
-
-Generated code can also vary between runs. Prompt framing, the selected agent,
-and the vendor's backend model routing all affect the exact application the
-agent writes, so the demo records the prompt, model, scan, and remediation
-evidence for each run.
-
-Use `refresh-pages` only when you want to rebuild the public pages from a prior
-run.
-
-## What To Show
-
-Each status page should answer five questions:
-
-1. What did the agent build?
-2. What did REACHABLE find?
-3. What did REACHABLE ask the agent to fix?
-4. What changed in the code?
-5. What did the final scan prove?
-
-The point is not that AI always writes secure code. The point is that REACHABLE
-secures generated code by proving which issues are exploitable and reachable by
-an attacker, then driving the agent to remediate the risks that matter before
-they reach build, runtime, or production. Fixing exploitable issues later in the
-SDLC is slower, more painful, and usually pulls humans back into the loop.
-
-Attackers chain sophisticated attacks. REACHABLE starts layered defense at code
-generation, before exploitable paths become part of your deployed production app.
-
-For small agentic development teams, SMBs, and focused vertical software
-companies without a dedicated security team, this saves time and reduces the
-need for late manual security work.
+Sthenos is approved as a cybersecurity user; where a vendor still blocks an
+agent, the demo reports that separately from a REACHABLE scan or remediation
+failure, so a vendor refusal is never presented as a product result.
 
 ## Contact
 
