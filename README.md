@@ -10,10 +10,10 @@ and rescanned to prove what was actually fixed.
 
 **[See what each agent produced →](https://sthenos-security.github.io/reach-vibe-demo/)**
 
-| | |
-| --- | --- |
-| [Codex](https://sthenos-security.github.io/reach-vibe-demo/codex/) | [Claude Code](https://sthenos-security.github.io/reach-vibe-demo/claude/) |
-| [Cursor](https://sthenos-security.github.io/reach-vibe-demo/cursor/) | |
+Per-agent results:
+**[Codex](https://sthenos-security.github.io/reach-vibe-demo/codex/)** ·
+**[Claude Code](https://sthenos-security.github.io/reach-vibe-demo/claude/)** ·
+**[Cursor](https://sthenos-security.github.io/reach-vibe-demo/cursor/)**
 
 The hub carries the live finding count per agent. Every page links the generated
 code before remediation, the exact prompt, the fixed code, and a side-by-side
@@ -48,21 +48,14 @@ from Lei Li Lab at Carnegie Mellon, puts frontier models and agent frameworks
 against 186 real-world, repository-level tasks and scores whether the code they
 produce is secure as well as functional.
 
-## What REACHABLE Does About It
+## Read The Numbers As One Sample
 
-It scans what the agent actually wrote, on the run that wrote it. It proves which
-issues are genuinely reachable by an attacker rather than dumping a findings
-list, drives the agent that produced the code to fix them, and rescans to confirm.
-That happens before the code reaches production, where the same issues cost more
-and pull people back into the loop.
+**These runs are not reproducible, and we publish them anyway.** Run a lane twice
+and the agent writes a different application, so the findings change with it. A
+vendor showing you stable figures for generated code is showing you a best-of.
 
-**These demo runs are not reproducible, and we publish them anyway.** Run a lane
-twice and the agent writes a different application, so the findings change with
-it. Treat every number on these pages as one sample. A vendor showing you stable
-figures for generated code is showing you a best-of.
-
-That instability is the whole argument. A benchmark average cannot tell you what
-is in *your* repository this week. Only scanning what your agent just wrote can.
+Which is the point. A benchmark average cannot tell you what is in *your*
+repository this week — only scanning what your agent just wrote can.
 
 ## Contact
 
