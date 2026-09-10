@@ -57,6 +57,27 @@ vendor showing you stable figures for generated code is showing you a best-of.
 Which is the point. A benchmark average cannot tell you what is in *your*
 repository this week — only scanning what your agent just wrote can.
 
+## Repository Role (do not change)
+
+This public repo is a **front door only**. It does not run agents or scanners.
+
+```
+reach-vibe-demo (public)  ──dispatch──┐
+                                      ├──► reach-vibe-throwdown (private engine)
+reach-vibe-lab  (private) ──dispatch──┘         │
+                                                ▼
+                                        credentials live only here
+```
+
+| Repo | Role | REACHABLE build | Pages |
+| --- | --- | --- | --- |
+| **reach-vibe-demo** (this repo) | public dispatcher | posted **wheel** | site root `/codex/` `/claude/` `/cursor/` |
+| **reach-vibe-lab** | private dispatcher | **latest source** | `/lab/<agent>/` (no collision with demo) |
+| **reach-vibe-throwdown** | private engine | runs the work | publishes both roots above |
+
+Run from Actions: **Run Codex Demo**, **Run Claude Demo**, or **Run Cursor Demo**.
+Details for maintainers: [docs/SECURITY-ARCHITECTURE.md](docs/SECURITY-ARCHITECTURE.md).
+
 ## Contact
 
 Website: https://sthenosec.com

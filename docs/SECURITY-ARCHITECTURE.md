@@ -2,6 +2,30 @@
 
 `reach-vibe-demo` is public by design. It is not the runner.
 
+## Architecture of record (do not change)
+
+```
+reach-vibe-demo (public)  ── REACH_DEMO_RUNNER_DISPATCH_TOKEN ──┐
+                                                                ├──► reach-vibe-throwdown
+reach-vibe-lab  (private) ── REACH_LAB_RUNNER_DISPATCH_TOKEN  ──┘         │
+                                                                         ▼
+                                                                   all vendor credentials
+                                                                   OPENAI / ANTHROPIC / CURSOR
+```
+
+| Repo | Visibility | Role | REACHABLE build | Pages |
+| --- | --- | --- | --- | --- |
+| `reach-vibe-demo` | public | dispatcher only | posted **wheel** | `/<agent>/` (investor root) |
+| `reach-vibe-lab` | private | dispatcher only | **latest source** (`main` by default) | `/lab/<agent>/` |
+| `reach-vibe-throwdown` | private | engine + credentials | executes both clients | publishes both roots |
+
+Credentials are held only in throwdown for security. Dispatchers hold at most a
+cross-repo dispatch token — never vendor API keys.
+
+Lab pages use unique paths under `/lab/` so they never collide with demo status
+pages at the site root. The public site mirrors throwdown **root** only, so
+`/lab/` never reaches investors.
+
 ## Boundary
 
 The private `reach-vibe-throwdown` repo is the secure runner and SDK boundary.
@@ -13,6 +37,10 @@ This public repository is only a bounded front door. It must not contain vendor 
 keys, local agent runner code, scanner logic, remediation logic, scan DBs, or
 remediation DBs.
 It does not run agents, scanners, or remediation.
+
+The private lab (`reach-vibe-lab`) is the same kind of front door: dispatcher
+only, no vendor keys. It may pass `reachable_source_ref` because it is private;
+this public repo must not pass refs.
 
 ## Secrets
 
