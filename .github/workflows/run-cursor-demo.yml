@@ -12,6 +12,10 @@ on:
         description: "Optional private run ID for refresh-pages"
         type: string
         default: ""
+      reachable_source_ref:
+        description: "Optional. reach-core ref (branch, tag, or SHA) the private run installs FROM SOURCE instead of the posted release. LEAVE EMPTY HERE: empty means the posted release, and the posted release is what the investor demo must show. Fill it in only for a deliberate pre-release proof."
+        type: string
+        default: ""
 
 permissions:
   contents: read
@@ -41,6 +45,8 @@ jobs:
           echo "Cursor demo stage mirror is ready."
 
       - name: Estimate tokens and time
+        env:
+          SOURCE_REF: ${{ github.event.inputs.reachable_source_ref }}
         run: |
           set -euo pipefail
           requested_run="${{ github.event.inputs.run }}"
@@ -59,6 +65,11 @@ jobs:
               echo "| runtime | roughly 19-60 minutes; the uncapped estimate can reach 84 minutes, but the run has a 60 minute hard cap |"
               echo "| budget basis | demo app generation plus as many verification-driven remediation passes as the one-hour cap permits |"
             fi
+            if [ -n "${SOURCE_REF}" ]; then
+              echo "| REACHABLE build | FROM SOURCE: reach-core ${SOURCE_REF} -- not the posted release |"
+            else
+              echo "| REACHABLE build | the posted release |"
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Generate request
@@ -71,6 +82,7 @@ jobs:
             const repo = 'reach-vibe-throwdown';
             const requestedRun = '${{ github.event.inputs.run }}';
             const resumeFromRun = '${{ github.event.inputs.resume_from_run }}'.trim();
+            const sourceRef = '${{ github.event.inputs.reachable_source_ref }}'.trim();
             const publicRunId = String(context.runId);
             const runMap = {
               'refresh-pages': 're-publish only (rebuild the pages from the last run)',
@@ -83,6 +95,13 @@ jobs:
             }
             if (resumeFromRun && !/^[0-9]+$/.test(resumeFromRun)) {
               core.setFailed('resume_from_run must be empty or a numeric GitHub Actions run ID');
+              return;
+            }
+            // The ref is interpolated into a git clone on the private runner, so it is
+            // constrained here rather than trusted: git refs are alphanumerics, dot,
+            // dash, underscore and slash, and may not lead with a dash.
+            if (sourceRef && !/^[A-Za-z0-9._][A-Za-z0-9._\/-]{0,199}$/.test(sourceRef)) {
+              core.setFailed('reachable_source_ref must be empty or a git ref (branch, tag, or SHA)');
               return;
             }
             const before = Date.now();
@@ -102,6 +121,14 @@ jobs:
                 pipeline_timeout_sec: '3600',
                 deep_remediation: 'off',
                 resume_from_run: resumeFromRun,
+                reachable_source_ref: sourceRef,
+                // The public front door is ALWAYS the demo client. That pins the
+                // published evidence to the site root, which is what this repo's
+                // result pages link to; the lab publishes under its own root, so the
+                // two clients can never write the same path. Passed explicitly rather
+                // than left to the private workflow's default: the default is a
+                // property of that repo and can change without this one noticing.
+                publish_client: 'demo',
                 dispatch_source_run: publicRunId,
               },
             });
