@@ -174,7 +174,6 @@ Inputs:
 - `app_scale`;
 - `deep_remediation`;
 - `absolute_max_sec`;
-- `max_batch_rules`;
 - `resume_from_run`.
 
 Behavior:
@@ -243,9 +242,6 @@ $EVIDENCE/before/signals-selected.json
 ```
 
 - compute:
-  - batch size;
-  - passes needed;
-  - passes affordable under absolute max;
   - wall-clock budget;
   - token estimate;
 - write `remediation-budget.txt`;
