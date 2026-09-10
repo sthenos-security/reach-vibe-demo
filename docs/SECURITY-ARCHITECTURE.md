@@ -22,6 +22,16 @@ reach-vibe-lab  (private) ── REACH_LAB_RUNNER_DISPATCH_TOKEN  ──┘     
 Credentials are held only in throwdown for security. Dispatchers hold at most a
 cross-repo dispatch token — never vendor API keys.
 
+## Two remediae CI paths (do not collapse)
+
+| Path | Who runs the agent | Typical `reachctl remediate` shape | Used by |
+| --- | --- | --- | --- |
+| **A. Straight agent binaries** | Runner spawns `codex` / `claude` / `cursor-agent` | `--context local --mode inplace` + per-pass timeout + `--max-wall-clock-hours` | Demo/lab via throwdown |
+| **B. Hosted coding-agent integration** | Hosted/async agent (e.g. GitHub Copilot); CI writes a bundle | `--context ci --mode branch --output-dir … --branch-name …` + handoff loop | `reach-ci-github` / Copilot testbeds — not this demo |
+
+Do not pin `--profile` / `--all` / `--batch-size` / `--max-iterations` from CI.
+Do not force path B's handoff loop onto path A, or path A's local spawn onto path B.
+
 Lab pages use unique paths under `/lab/` so they never collide with demo status
 pages at the site root. The public site mirrors throwdown **root** only, so
 `/lab/` never reaches investors.
@@ -70,6 +80,9 @@ Each workflow may accept only:
 It must not accept shell commands, prompts, arbitrary workflow names, refs,
 URLs, file paths, artifact names, scanner flags, or model settings.
 
-The private remediation path must be local and inplace:
+This public dispatcher always starts **path A** (straight agent binaries) in
+throwdown:
 
 `reachctl remediate --context local --mode inplace`
+
+It does not use path B (`--context ci` hosted coding-agent handoff).

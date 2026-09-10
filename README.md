@@ -75,6 +75,16 @@ reach-vibe-lab  (private) ──dispatch──┘         │
 | **reach-vibe-lab** | private dispatcher | **latest source** | `/lab/<agent>/` (no collision with demo) |
 | **reach-vibe-throwdown** | private engine | runs the work | publishes both roots above |
 
+### Two remediae CI paths (do not collapse)
+
+| Path | Who runs the agent | Typical `reachctl remediate` shape | Used by |
+| --- | --- | --- | --- |
+| **A. Straight agent binaries** | Runner spawns `codex` / `claude` / `cursor-agent` | `--context local --mode inplace` + per-pass timeout + `--max-wall-clock-hours` | Demo/lab via throwdown |
+| **B. Hosted coding-agent integration** | Hosted/async agent (e.g. GitHub Copilot); CI writes a bundle | `--context ci --mode branch --output-dir … --branch-name …` + handoff loop | `reach-ci-github` / Copilot testbeds — not this demo |
+
+Do not pin `--profile` / `--all` / `--batch-size` / `--max-iterations` from CI.
+Do not force path B's handoff loop onto path A, or path A's local spawn onto path B.
+
 Run from Actions: **Run Codex Demo**, **Run Claude Demo**, or **Run Cursor Demo**.
 Details for maintainers: [docs/SECURITY-ARCHITECTURE.md](docs/SECURITY-ARCHITECTURE.md).
 

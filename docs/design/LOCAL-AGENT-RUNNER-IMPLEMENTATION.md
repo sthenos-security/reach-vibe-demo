@@ -278,8 +278,23 @@ beyond defaults is opt-in:
 ```
 
 Only when requested and supported by the installed `reachctl`.
-CI adapters still differ only where required (`--context ci --mode branch
---output-dir …`).
+
+### Two remediae CI paths (do not collapse)
+
+Path A (this design) is **straight agent binaries**. Path B is a different
+product surface and must not be mixed into this runner:
+
+| Path | Who runs the agent | Typical `reachctl remediate` shape | Used by |
+| --- | --- | --- | --- |
+| **A. Straight agent binaries** | Runner spawns `codex` / `claude` / `cursor-agent` | `--context local --mode inplace` + per-pass timeout + `--max-wall-clock-hours` | Demo/lab via throwdown (this document) |
+| **B. Hosted coding-agent integration** | Hosted/async agent (e.g. GitHub Copilot); CI writes a bundle | `--context ci --mode branch --output-dir … --branch-name …` + outer adapter handoff loop | `reach-ci-github` / Copilot testbeds |
+
+Shared rules: do **not** pin `--profile`, `--all`, `--batch-size`, or
+`--max-iterations` from CI. Path A pins wall clock; reachctl owns passes. Path B
+keeps its bundle handoff loop because the agent is not a local subprocess.
+
+CI adapters for path B differ only where required (`--context ci --mode branch
+--output-dir …`); they are not a substitute for this local/inplace lane.
 
 State rule:
 
