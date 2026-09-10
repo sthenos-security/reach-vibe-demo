@@ -257,22 +257,29 @@ The underlying command must be equivalent to:
 reachctl remediate "$WORKSPACE" \
   --context local \
   --mode inplace \
-  --scan-mode deterministic \
   --agent "$remediation_id" \
-  --profile balanced \
-  --all \
-  --batch-size "$batch_rules" \
   "$timeout_flag" "$agent_timeout_sec" \
-  --max-iterations "$passes"
+  --max-wall-clock-hours "$wall_hours" \
+  --json-output
 ```
 
-Allowed optional flag:
+Do not pin `--profile`, `--scan-mode`, `--all`, `--batch-size`, or
+`--max-iterations`: the installed `reachctl` owns those. Batch auto-sizes from
+the per-pass timeout; the base iteration count is seeded from the queue; the
+existing elastic grant loop decides whether to continue.
+
+CI's billable stop is wall-clock hours (`--max-wall-clock-hours`, e.g. 4), not
+a hand-typed pass count. Omit it to use the stage policy default. Owned lanes
+also export `REACHABLE_RUN_DEADLINE_EPOCH` (with a shutdown buffer). Depth
+beyond defaults is opt-in:
 
 ```bash
 --deep-remediation
 ```
 
 Only when requested and supported by the installed `reachctl`.
+CI adapters still differ only where required (`--context ci --mode branch
+--output-dir …`).
 
 State rule:
 
