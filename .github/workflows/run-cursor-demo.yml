@@ -97,8 +97,8 @@ jobs:
                 source: 'generated',
                 scan_mode: 'real',
                 agent_timeout_sec: 'auto',
-                generate_timeout_sec: '1800',
-                absolute_max_sec: '3600',
+                generate_timeout_sec: 'auto',
+                absolute_max_sec: 'auto',
                 pipeline_timeout_sec: '3600',
                 deep_remediation: 'off',
                 // Investor root. Explicit, never omit: throwdown defaults to

@@ -131,8 +131,8 @@ def test_workflows_have_only_bounded_user_inputs() -> None:
         assert "publish_client: 'demo'" in text
         assert "allow_publish: 'true'" in text
         assert "agent_timeout_sec: 'auto'" in text
-        assert "generate_timeout_sec: '1800'" in text
-        assert "absolute_max_sec: '3600'" in text
+        assert "generate_timeout_sec: 'auto'" in text
+        assert "absolute_max_sec: 'auto'" in text
         assert "pipeline_timeout_sec: '3600'" in text
         assert "'refresh-pages': 're-publish only (rebuild the pages from the last run)'" in text
         assert "'full-demo': 'everything (generate, scan, remediate, publish)'" in text
