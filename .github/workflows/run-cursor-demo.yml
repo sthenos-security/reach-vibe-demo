@@ -96,9 +96,9 @@ jobs:
                 run: privateRunLabel,
                 source: 'generated',
                 scan_mode: 'real',
-                agent_timeout_sec: '480',
+                agent_timeout_sec: '630',
                 generate_timeout_sec: '1800',
-                absolute_max_sec: '3000',
+                absolute_max_sec: '3600',
                 pipeline_timeout_sec: '3600',
                 deep_remediation: 'off',
                 // Investor root. Explicit, never omit: throwdown defaults to
