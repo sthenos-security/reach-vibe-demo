@@ -101,6 +101,10 @@ jobs:
                 absolute_max_sec: '3000',
                 pipeline_timeout_sec: '3600',
                 deep_remediation: 'off',
+                // Investor root. Explicit, never omit: throwdown defaults to
+                // demo today, but relying on a default would let a future
+                // engine change put public demos under the wrong tree.
+                publish_client: 'demo',
                 allow_publish: 'true',
                 resume_from_run: resumeFromRun,
                 dispatch_source_run: publicRunId,

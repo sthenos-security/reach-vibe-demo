@@ -128,6 +128,8 @@ def test_workflows_have_only_bounded_user_inputs() -> None:
         assert "resume_from_run: resumeFromRun" in text
         assert "source: 'generated'" in text
         assert "scan_mode: 'real'" in text
+        assert "publish_client: 'demo'" in text
+        assert "allow_publish: 'true'" in text
         assert "agent_timeout_sec: '480'" in text
         assert "generate_timeout_sec: '1800'" in text
         assert "absolute_max_sec: '3000'" in text
@@ -137,6 +139,8 @@ def test_workflows_have_only_bounded_user_inputs() -> None:
 
         forbidden_inputs = (
             "agent:",
+            "publish_client:",
+            "allow_publish:",
             "prompt",
             "command",
             "workflow_name",
@@ -271,6 +275,9 @@ def test_copier_keeps_the_four_pages_local_and_the_rest_on_the_source() -> None:
     assert set(pages.values()) == {
         "index.html", "codex/index.html", "claude/index.html", "cursor/index.html",
     }
+    # Investor mirror is root-only: lab evidence must never be copied here.
+    assert "lab" not in copier.LANES
+    assert not any("/lab/" in url for url in pages)
 
     # `./` on a lane page is that lane's own root -- the before-scan page -- and
     # `../` is the hub. Both are pages we copy, so both stay inside this site.
@@ -301,3 +308,12 @@ def test_copier_keeps_the_four_pages_local_and_the_rest_on_the_source() -> None:
     assert "this pipeline run" in out
     assert "private run 42" in out
     assert "Copied from" in out
+
+
+def test_public_dispatches_pin_demo_client_independent_of_lab() -> None:
+    """Demo and lab share throwdown but must never write the same tree."""
+    for path in _workflow_paths():
+        text = _text(path)
+        assert "publish_client: 'demo'" in text
+        assert "publish_client: 'lab'" not in text
+        assert "allow_publish: 'true'" in text
