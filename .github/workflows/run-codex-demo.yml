@@ -96,7 +96,7 @@ jobs:
                 run: privateRunLabel,
                 source: 'generated',
                 scan_mode: 'real',
-                agent_timeout_sec: '630',
+                agent_timeout_sec: 'auto',
                 generate_timeout_sec: '1800',
                 absolute_max_sec: '3600',
                 pipeline_timeout_sec: '3600',
