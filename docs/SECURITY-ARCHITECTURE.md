@@ -10,10 +10,10 @@ This public repository is only a bounded front door. It:
 - dispatches a private workflow run in the runner that executes the real
   local-agent demo;
 - stores no vendor API keys;
-- runs no scanner;
-- runs no coding agent;
 - contains no local agent runner code, scanner logic, remediation logic, scan
   DBs, or remediation DBs.
+
+It does not run agents, scanners, or remediation.
 
 The private runner owns agent auth, local CLI invocation patterns, REACHABLE
 install, global cache handling, scan DBs, remediation DBs, evidence building,
