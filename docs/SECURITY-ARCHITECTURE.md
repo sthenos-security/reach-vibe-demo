@@ -2,67 +2,35 @@
 
 `reach-vibe-demo` is public by design. It is not the runner.
 
-## Architecture of record (do not change)
-
-```
-reach-vibe-demo (public)  ── REACH_DEMO_RUNNER_DISPATCH_TOKEN ──┐
-                                                                ├──► reach-vibe-throwdown
-reach-vibe-lab  (private) ── REACH_LAB_RUNNER_DISPATCH_TOKEN  ──┘         │
-                                                                         ▼
-                                                                   all vendor credentials
-                                                                   OPENAI / ANTHROPIC / CURSOR
-```
-
-| Repo | Visibility | Role | REACHABLE build | Pages |
-| --- | --- | --- | --- | --- |
-| `reach-vibe-demo` | public | dispatcher only | posted **wheel** | `/<agent>/` (investor root) |
-| `reach-vibe-lab` | private | dispatcher only | **latest source** (`main` by default) | `/lab/<agent>/` |
-| `reach-vibe-throwdown` | private | engine + credentials | executes both clients | publishes both roots |
-
-Credentials are held only in throwdown for security. Dispatchers hold at most a
-cross-repo dispatch token — never vendor API keys.
-
-## Two remediae CI paths (do not collapse)
-
-| Path | Who runs the agent | Typical `reachctl remediate` shape | Used by |
-| --- | --- | --- | --- |
-| **A. Straight agent binaries** | Runner spawns `codex` / `claude` / `cursor-agent` | `--context local --mode inplace` + per-pass timeout + `--max-wall-clock-hours` | Demo/lab via throwdown |
-| **B. Hosted coding-agent integration** | Hosted/async agent (e.g. GitHub Copilot); CI writes a bundle | `--context ci --mode branch --output-dir … --branch-name …` + handoff loop | `reach-ci-github` / Copilot testbeds — not this demo |
-
-Do not pin `--profile` / `--all` / `--batch-size` / `--max-iterations` from CI.
-Do not force path B's handoff loop onto path A, or path A's local spawn onto path B.
-
-Lab pages use unique paths under `/lab/` so they never collide with demo status
-pages at the site root. The public site mirrors throwdown **root** only, so
-`/lab/` never reaches investors.
-
 ## Boundary
 
-The private `reach-vibe-throwdown` repo is the secure runner and SDK boundary.
-It owns agent auth, local CLI invocation patterns, REACHABLE install, global
-cache handling, scan DBs, remediation DBs, evidence building, and publish
-contracts.
+This public repository is only a bounded front door. It:
 
-This public repository is only a bounded front door. It must not contain vendor API
-keys, local agent runner code, scanner logic, remediation logic, scan DBs, or
-remediation DBs.
-It does not run agents, scanners, or remediation.
+- accepts only bounded choices;
+- dispatches a private workflow run in the runner that executes the real
+  local-agent demo;
+- stores no vendor API keys;
+- runs no scanner;
+- runs no coding agent;
+- contains no local agent runner code, scanner logic, remediation logic, scan
+  DBs, or remediation DBs.
 
-The private lab (`reach-vibe-lab`) is the same kind of front door: dispatcher
-only, no vendor keys. It may pass `reachable_source_ref` because it is private;
-this public repo must not pass refs.
+The private runner owns agent auth, local CLI invocation patterns, REACHABLE
+install, global cache handling, scan DBs, remediation DBs, evidence building,
+and publish contracts. Its internal layout, CI invocation details, and the
+full secret inventory are maintained privately and intentionally not
+documented in this public repository. See the internal hardening record for
+that detail if you have access.
 
 ## Secrets
 
 The only secret this repository may use is
-`REACH_DEMO_RUNNER_DISPATCH_TOKEN`. It is not a vendor key. It should be scoped
-only to dispatch workflows in `sthenos-security/reach-vibe-throwdown`.
+`REACH_DEMO_RUNNER_DISPATCH_TOKEN`. It is not a vendor key. It should be
+scoped only to dispatch workflows in the private runner repository, with no
+other permissions (no admin, no secrets access, no org access).
 
-Vendor secrets stay in private `reach-vibe-throwdown`:
-
-- `OPENAI_API_KEY`
-- `ANTHROPIC_API_KEY`
-- `CURSOR_API_KEY`
+Vendor API keys (for any coding agent) are never present in this repository
+and are held exclusively by the private runner.
 
 ## Workflow Rules
 
@@ -80,9 +48,7 @@ Each workflow may accept only:
 It must not accept shell commands, prompts, arbitrary workflow names, refs,
 URLs, file paths, artifact names, scanner flags, or model settings.
 
-This public dispatcher always starts **path A** (straight agent binaries) in
-throwdown:
-
-`reachctl remediate --context local --mode inplace`
-
-It does not use path B (`--context ci` hosted coding-agent handoff).
+This public dispatcher only ever triggers the private runner's standard
+local-agent flow. It does not support, and must never be extended to support,
+CI-hosted remediation handoff, Copilot dispatch, or remediation PR creation
+from this repo.
