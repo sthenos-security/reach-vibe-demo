@@ -1,5 +1,9 @@
 # REACHABLE Vibe Demo
 
+[![Live demo](https://img.shields.io/badge/live%20demo-open-2ea44f)](https://sthenos-security.github.io/reach-vibe-demo/)
+[![Agents: Claude Code, Codex, Cursor](https://img.shields.io/badge/agents-Claude%20Code%20%7C%20Codex%20%7C%20Cursor-blueviolet)](https://sthenos-security.github.io/reach-vibe-demo/)
+[![Sthenos Security](https://img.shields.io/badge/Sthenos%20Security-sthenosec.com-B22222)](https://sthenosec.com)
+
 **The same brief, given to three AI coding agents, produces three different
 applications with three different sets of security flaws.**
 
