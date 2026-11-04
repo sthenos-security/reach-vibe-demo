@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -88,9 +89,13 @@ def test_public_workflows_mirror_private_live_stages() -> None:
         assert "Cyber Verification Program" in text
         assert "Private failure diagnostics" in text
         assert "1. the app the selected agent wrote" in text
-        assert 'startswith("2. ")' in text
-        assert 'startswith("3. ")' in text
-        assert 'startswith("4. ")' in text
+        # The private engine (reach-vibe-throwdown demo-remediation.yml) has
+        # exactly two jobs since 52d0211 (2026-10-09): "1. the app the
+        # selected agent wrote" and "2. remediae" (scan, remediate, rescan and
+        # publish). A wait on any other prefix never matches and hangs the
+        # dispatcher until its 60-minute cancel (run 37998465662).
+        waited = set(re.findall(r'startswith\("(\d+)\. "\)', text))
+        assert waited == {"2"}, f"{path.name} waits on engine jobs {sorted(waited)}"
         assert "Waiting for rescan and publish." in text
         assert "Public status page:" in text
 

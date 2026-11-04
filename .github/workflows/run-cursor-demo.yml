@@ -258,7 +258,7 @@ jobs:
             payload="$(gh run view "${PRIVATE_RUN_ID}" --repo "${PRIVATE_REPO}" --json jobs,status,conclusion,url)"
             rem_state="$(python3 -c 'import json,sys
           data=json.load(sys.stdin)
-          job=next((j for j in data.get("jobs") or [] if (j.get("name") or "").startswith("3. ")), None)
+          job=next((j for j in data.get("jobs") or [] if (j.get("name") or "").startswith("2. ")), None)
           if not job:
               print("pending||")
           else:
@@ -283,7 +283,7 @@ jobs:
             payload="$(gh run view "${PRIVATE_RUN_ID}" --repo "${PRIVATE_REPO}" --json jobs,status,conclusion,url)"
             pub_state="$(python3 -c 'import json,sys
           data=json.load(sys.stdin)
-          job=next((j for j in data.get("jobs") or [] if (j.get("name") or "").startswith("4. ")), None)
+          job=next((j for j in data.get("jobs") or [] if (j.get("name") or "").startswith("2. ")), None)
           if not job:
               print("pending||")
           else:
